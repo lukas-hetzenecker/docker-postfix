@@ -183,10 +183,22 @@ EOF
     echo "ldap_bind_pw: $LDAP_BIND_PW" >> /etc/saslauthd.conf
   fi
 
-  LMTP_PORT=${LMTP_PORT:-24}
-  if [[ -n "$LMTP_HOST" ]]; then
-    postconf -e virtual_transport=lmtp:$LMTP_HOST:$LMTP_PORT
-  fi
+elif [[ -n "$DOVECOT_IP" && -n "$DOVECOT_PORT" ]]; then
+
+  postconf -e smtpd_sasl_path=inet:$DOVECOT_IP:$DOVECOT_PORT
+  postconf -e smtpd_sasl_type=dovecot
+
+fi
+
+LMTP_PORT=${LMTP_PORT:-24}
+if [[ -n "$LMTP_HOST" ]]; then
+  postconf -e virtual_transport=lmtp:$LMTP_HOST:$LMTP_PORT
+fi
+
+if [[ -n "$VIRTUAL_ALIAS_MAPS" ]]; then
+
+  postmap $VIRTUAL_ALIAS_MAPS
+  postconf -e virtual_alias_maps=hash:$VIRTUAL_ALIAS_MAPS
 
 fi
 
@@ -197,8 +209,8 @@ if [[ -n "$(find /etc/postfix/certs -iname *.crt)" && -n "$(find /etc/postfix/ce
   # /etc/postfix/main.cf
   postconf -e smtpd_tls_cert_file=$(find /etc/postfix/certs -iname *.crt)
   postconf -e smtpd_tls_key_file=$(find /etc/postfix/certs -iname *.key)
-  postconf -e smtpd_tls_CAfile=/etc/postfix/certs/certs/cacert.pem
-  chmod 400 $(find /etc/postfix/certs -iname *.crt) $(find /etc/postfix/certs -iname *.key) /etc/postfix/certs/certs/cacert.pem
+  postconf -e smtpd_tls_CAfile=$(find /etc/postfix/certs -iname cacert.pem)
+  chmod 400 $(find /etc/postfix/certs -iname *.crt) $(find /etc/postfix/certs -iname *.key) $(find /etc/postfix/certs -iname cacert.pem)
   # /etc/postfix/master.cf
   postconf -M submission/inet="submission   inet   n   -   n   -   -   smtpd"
   postconf -P "submission/inet/syslog_name=postfix/submission"
