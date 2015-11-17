@@ -212,6 +212,11 @@ if [[ -n "$VIRTUAL_ALIAS_MAPS" ]]; then
   postconf -e "virtual_alias_maps = hash:/$VIRTUAL_ALIAS_MAPS"
 fi
 
+if [[ -n "$MYNETWORKS" ]]; then
+  postconf -e "mynetworks = $MYNETWORKS"
+fi
+
+
 ############
 # Enable TLS
 ############
