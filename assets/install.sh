@@ -190,6 +190,11 @@ EOF
 
 fi
 
+if [[ -n "$MYNETWORKS" ]]; then
+  postconf -e "mynetworks = $MYNETWORKS"
+fi
+
+
 ############
 # Enable TLS
 ############
