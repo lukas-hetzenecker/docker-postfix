@@ -193,22 +193,23 @@ fi
 LMTP_PORT=${LMTP_PORT:-24}
 if [[ -n "$LMTP_HOST" ]]; then
   postconf -e virtual_transport=lmtp:$LMTP_HOST:$LMTP_PORT
+  postconf -e virtual_uid_maps=static:1200
+  postconf -e virtual_gid_maps=static:1200
+fi
+
+if [[ -n "$VIRTUAL_MAILBOX_DOMAINS" ]]; then
+  postconf -e "mydestination = localhost.\$mydomain, localhost"
+  postconf -e "virtual_mailbox_domains = $VIRTUAL_MAILBOX_DOMAINS"
+fi
+
+if [[ -n "$VIRTUAL_MAILBOX_MAPS" ]]; then
+  postmap $VIRTUAL_MAILBOX_MAPS
+  postconf -e "virtual_mailbox_maps = hash:/$VIRTUAL_MAILBOX_MAPS"
 fi
 
 if [[ -n "$VIRTUAL_ALIAS_MAPS" ]]; then
-
   postmap $VIRTUAL_ALIAS_MAPS
-
-  postconf -e "mydestination = localhost.\$mydomain, localhost"
-  postconf -e "virtual_mailbox_domains = \$myhostname, \$mydomain"
-  postconf -e virtual_uid_maps=static:1200
-  postconf -e virtual_gid_maps=static:1200
-  postconf -e virtual_alias_maps=hash:$VIRTUAL_ALIAS_MAPS
-
-  if [[ -n "$EXTRA_VIRTUAL_MAILBOX_DOMAINS" ]]; then
-    postconf -e "virtual_mailbox_domains = \$myhostname, \$mydomain, $EXTRA_VIRTUAL_MAILBOX_DOMAINS"
-  fi
-
+  postconf -e "virtual_alias_maps = hash:/$VIRTUAL_ALIAS_MAPS"
 fi
 
 ############
